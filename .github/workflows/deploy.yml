@@ -1,0 +1,62 @@
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: echo-web-pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Fetch Echo release metadata
+        run: npm run fetch-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ECHO_APP_REPO: MichaelJ43/echo
+
+      - name: Resolve site base path
+        id: site
+        run: |
+          EXPLICIT="${{ vars.SITE_BASE_PATH }}"
+          REPO="${{ github.event.repository.name }}"
+          OWNER="${{ github.repository_owner }}"
+          if [ -n "$EXPLICIT" ]; then
+            ROOT="$EXPLICIT"
+            [ "${ROOT#/}" != "$ROOT" ] || ROOT="/$ROOT"
+            if [ "$ROOT" != "/" ] && [ "${ROOT%/}" = "$ROOT" ]; then
+              ROOT="${ROOT}/"
+            fi
+          elif [ "$REPO" = "${OWNER}.github.io" ]; then
+            ROOT="/"
+          else
+            ROOT="/$REPO/"
+          fi
+          echo "path=$ROOT" >> $GITHUB_OUTPUT
+
+      - name: Build
+        env:
+          VITE_BASE_PATH: ${{ steps.site.outputs.path }}
+        run: npm run build
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          keep_files: true

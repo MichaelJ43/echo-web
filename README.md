@@ -13,7 +13,7 @@ npm run dev
 
 Push to `main` triggers [.github/workflows/deploy.yml](.github/workflows/deploy.yml). Pull request previews and cleanup are handled by [.github/workflows/preview.yml](.github/workflows/preview.yml).
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for branch flow, preview URLs, and `SITE_BASE_PATH` / `CUSTOM_PAGES_URL`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for branch flow, preview URLs, and **`vite.base.json`** / `SITE_BASE_PATH` / `CUSTOM_PAGES_URL` (Vite `base` must match how the site is hosted—custom domains at the apex need **`"/"`**).
 
 ## Screenshots
 

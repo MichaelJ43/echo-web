@@ -32,22 +32,14 @@ jobs:
 
       - name: Resolve site base path
         id: site
+        env:
+          SITE_BASE_PATH: ${{ vars.SITE_BASE_PATH }}
+          CUSTOM_PAGES_URL: ${{ vars.CUSTOM_PAGES_URL }}
+          GITHUB_REPO_NAME: ${{ github.event.repository.name }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
         run: |
-          EXPLICIT="${{ vars.SITE_BASE_PATH }}"
-          REPO="${{ github.event.repository.name }}"
-          OWNER="${{ github.repository_owner }}"
-          if [ -n "$EXPLICIT" ]; then
-            ROOT="$EXPLICIT"
-            [ "${ROOT#/}" != "$ROOT" ] || ROOT="/$ROOT"
-            if [ "$ROOT" != "/" ] && [ "${ROOT%/}" = "$ROOT" ]; then
-              ROOT="${ROOT}/"
-            fi
-          elif [ "$REPO" = "${OWNER}.github.io" ]; then
-            ROOT="/"
-          else
-            ROOT="/$REPO/"
-          fi
-          echo "path=$ROOT" >> $GITHUB_OUTPUT
+          chmod +x scripts/resolve-site-base.sh
+          echo "path=$(./scripts/resolve-site-base.sh)" >> "$GITHUB_OUTPUT"
 
       - name: Build
         env:
